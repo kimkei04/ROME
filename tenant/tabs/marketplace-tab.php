@@ -259,11 +259,13 @@ require_once($_SERVER['DOCUMENT_ROOT'] . '/ROME/tenant/includes/tab-header.php')
                         <div class="action-buttons">
                             <?php if (isset($_SESSION['user_id'])): ?>
                                 <div class="ms-auto">
-                                    <button class="btn btn-primary me-2 reserve-button" data-property-id="${propertyId}" data-property-name="${propertyName}">
+                                    <button class="btn btn-primary me-2 reserve-button" 
+                                            data-property-id="<?php echo htmlspecialchars($property['id']); ?>"
+                                            data-property-name="<?php echo htmlspecialchars($property['fullname']); ?>">
                                         <i class="fas fa-calendar-check"></i> Reserve
                                     </button>
                                     <button class="btn btn-outline-secondary add-to-favorites">
-                                        <i class="fas fa-heart" data-id="${propertyId}"></i>
+                                        <i class="fas fa-heart" data-property-id="<?php echo htmlspecialchars($property['id']); ?>"></i>
                                     </button>
                                 </div>
                             <?php else: ?>

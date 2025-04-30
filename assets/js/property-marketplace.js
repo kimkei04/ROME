@@ -383,62 +383,111 @@ document.addEventListener('DOMContentLoaded', function() {
     initFavoriteButtons();
 
     // --- Reservation Functionality ---
-    function makeReservation(propertyId, action = 'reserve', buttonElement = null) {
-        const formData = new FormData();
-        formData.append('property_id', propertyId);
-        formData.append('action', action); // 'reserve' or 'cancel'
+    function makeReservation(propertyId, buttonElement = null) {
+        // Show loading state
+        if (buttonElement) {
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        }
 
-        fetch('/ROME/api/make_reservation.php', {
+        // Make AJAX call to reserve property
+        $.ajax({
+            url: '/ROME/api/make_reservation.php',
             method: 'POST',
-            body: formData,
-            credentials: 'same-origin'
-        })
-        .then(response => {
-             if (!response.ok) {
-                 return response.text().then(text => { throw new Error(text || `HTTP error! status: ${response.status}`) });
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                Swal.fire(
-                    action === 'reserve' ? 'Reserved!' : 'Cancelled!',
-                    data.message || `Your reservation has been ${action === 'reserve' ? 'placed' : 'cancelled'}.`,
-                    'success'
-                );
-                // Update button state if element is provided
-                if (buttonElement) {
-                    if (action === 'reserve') {
-                        buttonElement.innerHTML = getReservationButtonText('pending');
-                        buttonElement.classList.remove('btn-primary');
-                        buttonElement.classList.add('btn-warning');
-                        buttonElement.setAttribute('data-reservation-status', 'pending');
-                    } else { // cancel
-                         buttonElement.innerHTML = getReservationButtonText(''); // Reset to default
-                        buttonElement.classList.remove('btn-warning');
-                        buttonElement.classList.add('btn-primary');
-                        buttonElement.setAttribute('data-reservation-status', '');
-                    }
+            data: {
+                property_id: propertyId,
+                action: 'reserve'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Show success message
+                    Swal.fire({
+                        title: 'Success!',
+                        text: response.message || 'Your reservation has been submitted successfully.',
+                        icon: 'success'
+                    }).then(() => {
+                        // Reload page to update UI
+                        location.reload();
+                    });
+                } else {
+                    // Show error message
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.message || 'Failed to make reservation. Please try again.',
+                        icon: 'error'
+                    });
                 }
-                 // Optionally close the modal
-                 // $('#propertyDetailsModal').modal('hide');
-                 // Optionally refresh part of the page or the whole page
-                 // location.reload();
-            } else {
-                Swal.fire(
-                    'Error!',
-                    data.message || 'Could not complete the reservation action.',
-                    'error'
-                );
+            },
+            error: function(xhr, status, error) {
+                // Show error message
+                Swal.fire({
+                    title: 'Error',
+                    text: 'An error occurred while processing your request. Please try again.',
+                    icon: 'error'
+                });
+                console.error('Reservation error:', error);
+            },
+            complete: function() {
+                // Reset button state
+                if (buttonElement) {
+                    buttonElement.disabled = false;
+                    buttonElement.innerHTML = '<i class="fas fa-calendar-check"></i> Reserve';
+                }
             }
-        })
-        .catch(error => {
-            console.error('Error making reservation:', error);
-            Swal.fire(
-                'Error!',
-                `An error occurred: ${error.message}`,
-                'error'
-            );
+        });
+    }
+
+    function cancelReservation(propertyId, buttonElement = null) {
+        // Show loading state
+        if (buttonElement) {
+            buttonElement.disabled = true;
+            buttonElement.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        }
+
+        // Make AJAX call to cancel reservation
+        $.ajax({
+            url: '/ROME/api/make_reservation.php',
+            method: 'POST',
+            data: {
+                property_id: propertyId,
+                action: 'cancel'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Show success message
+                    Swal.fire({
+                        title: 'Cancelled!',
+                        text: response.message || 'Your reservation has been cancelled.',
+                        icon: 'success'
+                    }).then(() => {
+                        // Reload page to update UI
+                        location.reload();
+                    });
+                } else {
+                    // Show error message
+                    Swal.fire({
+                        title: 'Error',
+                        text: response.message || 'Failed to cancel reservation. Please try again.',
+                        icon: 'error'
+                    });
+                }
+            },
+            error: function(xhr, status, error) {
+                // Show error message
+                Swal.fire({
+                    title: 'Error',
+                    text: 'An error occurred while processing your request. Please try again.',
+                    icon: 'error'
+                });
+                console.error('Cancellation error:', error);
+            },
+            complete: function() {
+                // Reset button state
+                if (buttonElement) {
+                    buttonElement.disabled = false;
+                    buttonElement.innerHTML = '<i class="fas fa-calendar-check"></i> Reserve';
+                }
+            }
         });
     }
 
